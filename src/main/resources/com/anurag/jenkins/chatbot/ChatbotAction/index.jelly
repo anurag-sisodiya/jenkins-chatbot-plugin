@@ -1,0 +1,23 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+    <l:layout title="Chatbot">
+        <l:main-panel>
+            <h1>Chatbot for Build #${it.run.number}</h1>
+
+            <form method="post" action="query" style="margin-top: 20px;">
+                <input type="text" name="userQuery" size="80" placeholder="Ask about this build's logs..." style="padding: 5px;"/>
+                <input type="submit" value="Ask" style="padding: 5px;"/>
+            </form>
+
+            <br/>
+
+            <j:if test="${!empty(it.chatbotResponse)}">
+                <h2 style="margin-top: 20px;">Response:</h2>
+                <div style="white-space: pre-wrap; background-color: #f0f0f0; border: 1px solid #ccc; padding: 10px; border-radius: 5px; font-family: monospace;">
+                    ${it.chatbotResponse}
+                </div>
+            </j:if>
+
+        </l:main-panel>
+    </l:layout>
+</j:jelly>

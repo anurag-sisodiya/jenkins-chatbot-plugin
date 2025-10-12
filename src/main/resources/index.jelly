@@ -1,4 +1,4 @@
 <?jelly escape-by-default='true'?>
 <div>
-    TODO
+    This plugin provides a chatbot interface to interact with build logs and get AI-powered insights.
 </div>

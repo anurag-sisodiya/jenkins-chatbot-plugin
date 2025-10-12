@@ -1,15 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>5.21</version>
-        <relativePath />
+        <version>4.78</version>
+        <relativePath/>
     </parent>
 
     <groupId>com.anurag.jenkins.chatbot</groupId>
@@ -18,41 +16,19 @@
     <packaging>hpi</packaging>
 
     <name>Jenkins Chatbot Plugin</name>
-    <url>https://github.com/anurag-sisodiya/jenkins-chatbot-plugin</url>
-
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>https://opensource.org/license/mit/</url>
-        </license>
-    </licenses>
-
-    <scm>
-        <connection>scm:git:https://github.com/anurag-sisodiya/jenkins-chatbot-plugin.git</connection>
-        <developerConnection>scm:git:https://github.com/anurag-sisodiya/jenkins-chatbot-plugin.git</developerConnection>
-        <url>https://github.com/anurag-sisodiya/jenkins-chatbot-plugin</url>
-    </scm>
 
     <properties>
-        <jenkins.baseline>2.504</jenkins.baseline>
-        <jenkins.version>${jenkins.baseline}.3</jenkins.version>
+        <jenkins.version>2.426.3</jenkins.version>
+        <java.level>11</java.level>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-${jenkins.baseline}.x</artifactId>
-                <version>5208.vb_69e9d049f68</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <repositories>
         <repository>
-            <id>repo.jenkins-ci.org</id>
+            <id>jenkins-releases</id>
+            <url>https://repo.jenkins-ci.org/releases/</url>
+        </repository>
+        <repository>
+            <id>jenkins-public</id>
             <url>https://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
@@ -63,4 +39,38 @@
             <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.jenkins.tools.bom</groupId>
+                <artifactId>bom-2.426.x</artifactId>
+                <version>2675.v1515e14da_7a_6</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- JSON + HTTP Client -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.3.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20240303</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>plain-credentials</artifactId>
+            <version>1.8</version>
+        </dependency>
+    </dependencies>
+
 </project>
