@@ -1,6 +1,6 @@
 # Jenkins Console Chatbot Plugin
 
-A smart assistant for your Jenkins builds — ask questions about build logs, errors, and execution directly from the Jenkins console.
+A smart assistant for your Jenkins builds - ask questions about build logs, errors, and execution directly from the Jenkins console.
 
 ## Features
 
