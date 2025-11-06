@@ -1,0 +1,13 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:section title="Chatbot Plugin">
+        <f:entry title="API URL" field="apiUrl"
+                 help="/plugin/jenkins-chatbot-plugin/help-apiUrl.html">
+            <f:textbox default="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"/>
+        </f:entry>
+        <f:entry title="Model Name (Optional)" field="modelName"
+                 help="/plugin/jenkins-chatbot-plugin/help-modelName.html">
+            <f:textbox />
+        </f:entry>
+    </f:section>
+</j:jelly>

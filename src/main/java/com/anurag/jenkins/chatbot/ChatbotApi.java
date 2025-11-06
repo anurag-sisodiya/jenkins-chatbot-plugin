@@ -17,16 +17,25 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class ChatbotApi {
 
+    // A logger for diagnostics, which will appear in the main Jenkins system log.
+    private static final Logger LOGGER = Logger.getLogger(ChatbotApi.class.getName());
+
+    // This ID is used to look up the credential in Jenkins.
+    // It's recommended to make this configurable in the future for advanced use cases.
     private static final String CREDENTIALS_ID = "gemini-api-key";
 
-    // ✅ This URL uses the exact model name available to your API key.
-    private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
-
+    /**
+     * Securely retrieves the API key from Jenkins' global credentials.
+     * @return The API key as a string, or null if not found.
+     */
     private static String getApiKey() {
+        // Find the 'Secret text' credential that matches our defined ID.
         StringCredentials credential = CredentialsProvider.lookupCredentials(
                         StringCredentials.class,
                         Jenkins.get(),
@@ -37,13 +46,29 @@ public class ChatbotApi {
                 .findFirst()
                 .orElse(null);
 
-        return (credential != null) ? credential.getSecret().getPlainText() : null;
+        if (credential == null) {
+            LOGGER.warning("Could not find credential with ID: " + CREDENTIALS_ID);
+            return null;
+        }
+        return credential.getSecret().getPlainText();
     }
 
+    /**
+     * Main method that communicates with the generative AI service.
+     * @param query The user's question.
+     * @param logs The list of log lines from the build.
+     * @return The AI's response as a string, or an error message.
+     */
     public static String askChatbot(String query, List<String> logs) {
         String apiKey = getApiKey();
         if (StringUtils.isEmpty(apiKey)) {
             return "ERROR: API Key not found. Please configure a 'Secret text' credential with the ID '" + CREDENTIALS_ID + "' in Jenkins Global Credentials.";
+        }
+
+        // 1. Get the API URL from the global Jenkins configuration. No more hardcoding!
+        String apiUrl = Jenkins.get().getDescriptorByType(ChatbotGlobalConfiguration.class).getApiUrl();
+        if (StringUtils.isEmpty(apiUrl)) {
+            return "ERROR: API URL is not configured in Manage Jenkins -> Configure System.";
         }
 
         String logsAsString = String.join("\n", logs);
@@ -52,9 +77,11 @@ public class ChatbotApi {
                 "--- QUESTION ---\n" + query;
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpPost request = new HttpPost(API_URL + "?key=" + apiKey);
+            // 2. Use the dynamically configured API URL.
+            HttpPost request = new HttpPost(apiUrl + "?key=" + apiKey);
             request.setHeader("Content-Type", "application/json");
 
+            // Construct the JSON payload required by the Google Gemini API.
             JSONObject payload = new JSONObject();
             JSONArray contents = new JSONArray();
             JSONObject content = new JSONObject();
@@ -68,23 +95,32 @@ public class ChatbotApi {
 
             request.setEntity(new StringEntity(payload.toString(), StandardCharsets.UTF_8));
 
+            LOGGER.info("Sending request to AI API at: " + apiUrl);
+
             return httpClient.execute(request, response -> {
                 String responseBody;
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))) {
                     responseBody = reader.lines().collect(Collectors.joining("\n"));
                 }
 
+                // Log the raw response for easier debugging if there's an issue.
+                LOGGER.fine("Received raw API response: " + responseBody);
+
                 JSONObject jsonResponse = new JSONObject(responseBody);
                 if (jsonResponse.has("error")) {
-                    return "API Error: " + jsonResponse.getJSONObject("error").getString("message");
+                    String errorMessage = jsonResponse.getJSONObject("error").getString("message");
+                    LOGGER.severe("API returned an error: " + errorMessage);
+                    return "API Error: " + errorMessage;
                 }
 
                 if (jsonResponse.getJSONArray("candidates").getJSONObject(0).has("finishReason") &&
                         "SAFETY".equals(jsonResponse.getJSONArray("candidates").getJSONObject(0).getString("finishReason"))) {
+                    LOGGER.warning("Response was blocked due to safety concerns.");
                     return "Response was blocked due to safety concerns.";
                 }
 
                 if (!jsonResponse.getJSONArray("candidates").getJSONObject(0).getJSONObject("content").has("parts")) {
+                    LOGGER.warning("Model returned an empty response content.");
                     return "The model returned an empty response.";
                 }
 
@@ -97,7 +133,9 @@ public class ChatbotApi {
             });
 
         } catch (Exception e) {
-            e.printStackTrace();
+            // Log the full exception for administrators.
+            LOGGER.log(Level.SEVERE, "Error communicating with the Chatbot API", e);
+            // Return a user-friendly error message.
             return "Error communicating with the API: " + e.getMessage();
         }
     }

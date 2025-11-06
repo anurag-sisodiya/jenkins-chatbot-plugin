@@ -5,7 +5,7 @@ import hudson.model.Run;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.WebMethod;
-import org.kohsuke.stapler.verb.POST;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -29,7 +29,7 @@ public class ChatbotAction implements Action {
         return run;
     }
 
-    @POST
+    @RequirePOST
     @WebMethod(name = "query")
     public void doQuery(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
         // 1. Get the current build from the web request's context
@@ -57,7 +57,8 @@ public class ChatbotAction implements Action {
     // --- Standard Action methods ---
     @Override
     public String getIconFileName() {
-        return "robot.png";
+        // Use the plugin's own icon
+        return "/plugin/jenkins-chatbot-plugin/images/chatbot-icon.png";
     }
 
     @Override
