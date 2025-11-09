@@ -23,19 +23,13 @@ import java.util.stream.Collectors;
 
 public class ChatbotApi {
 
-    // A logger for diagnostics, which will appear in the main Jenkins system log.
     private static final Logger LOGGER = Logger.getLogger(ChatbotApi.class.getName());
 
     // This ID is used to look up the credential in Jenkins.
     // It's recommended to make this configurable in the future for advanced use cases.
     private static final String CREDENTIALS_ID = "gemini-api-key";
 
-    /**
-     * Securely retrieves the API key from Jenkins' global credentials.
-     * @return The API key as a string, or null if not found.
-     */
     private static String getApiKey() {
-        // Find the 'Secret text' credential that matches our defined ID.
         StringCredentials credential = CredentialsProvider.lookupCredentials(
                         StringCredentials.class,
                         Jenkins.get(),
@@ -65,7 +59,6 @@ public class ChatbotApi {
             return "ERROR: API Key not found. Please configure a 'Secret text' credential with the ID '" + CREDENTIALS_ID + "' in Jenkins Global Credentials.";
         }
 
-        // 1. Get the API URL from the global Jenkins configuration. No more hardcoding!
         String apiUrl = Jenkins.get().getDescriptorByType(ChatbotGlobalConfiguration.class).getApiUrl();
         if (StringUtils.isEmpty(apiUrl)) {
             return "ERROR: API URL is not configured in Manage Jenkins -> Configure System.";

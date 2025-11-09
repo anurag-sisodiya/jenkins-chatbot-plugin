@@ -10,28 +10,44 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.List;
+import org.kohsuke.stapler.Stapler;
+import jenkins.model.Jenkins;
+import hudson.security.csrf.CrumbIssuer;
+
 
 public class ChatbotAction implements Action {
 
-    // This field is only used when the page is first loaded.
     private final transient Run<?, ?> run;
     private String chatbotResponse;
 
     public ChatbotAction(Run<?, ?> run) {
         this.run = run;
     }
-
-    public String getChatbotResponse() {
-        return chatbotResponse;
+    public String getCrumb() {
+        StaplerRequest req = Stapler.getCurrentRequest();
+        if (req == null) return null;
+        CrumbIssuer issuer = Jenkins.get().getCrumbIssuer();
+        if (issuer == null) return null;
+        return issuer.getCrumb(req);
     }
 
-    public Run<?, ?> getRun() {
-        return run;
+    // 👇 AND ADD THIS METHOD
+    public String getCrumbField() {
+        StaplerRequest req = Stapler.getCurrentRequest();
+        if (req == null) return null;
+        CrumbIssuer issuer = Jenkins.get().getCrumbIssuer();
+        if (issuer == null) return null;
+        return issuer.getCrumbRequestField();
     }
+    @Override public String getDisplayName() { return "Chatbot"; }
+    @Override public String getUrlName() { return "chatbot"; }
+    @Override public String getIconFileName() { return "/plugin/jenkins-chatbot-plugin/images/chatbot-icon.png"; }
+
+    public String getChatbotResponse() { return chatbotResponse; }
+    public Run<?, ?> getRun() { return run; }
 
     @RequirePOST
-    @WebMethod(name = "query")
-    public void doQuery(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+    public void doSubmit(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
         // 1. Get the current build from the web request's context
         Run<?, ?> currentRun = req.findAncestorObject(Run.class);
 
@@ -54,20 +70,5 @@ public class ChatbotAction implements Action {
         rsp.forwardToPreviousPage(req);
     }
 
-    // --- Standard Action methods ---
-    @Override
-    public String getIconFileName() {
-        // Use the plugin's own icon
-        return "/plugin/jenkins-chatbot-plugin/images/chatbot-icon.png";
-    }
 
-    @Override
-    public String getDisplayName() {
-        return "Chatbot";
-    }
-
-    @Override
-    public String getUrlName() {
-        return "chatbot";
-    }
 }
